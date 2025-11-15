@@ -22,7 +22,7 @@ We can already see that it is a Word Press website from the information we gathe
     10000/tcp open  snet-sensor-mgmt
 ```
 
-#### Port 21 - SSH
+#### Port 21 - FTP
 
 ```bash
     $ nmap -p 21 --script=ftp-anon,ftp-syst 10.0.0.18
@@ -128,7 +128,8 @@ We can already see that it is a Word Press website from the information we gathe
     |       none
     |_      zlib@openssh.com
 ```
-#### Port 80 - SSH
+
+#### Port 80 - HTTP
 
 ```bash
     $ nmap -sV -p 80 --script=http-title,http-server-header,http-headers,http-methods,http-enum,vuln 10.0.0.18

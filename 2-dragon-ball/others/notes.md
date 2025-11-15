@@ -1,4 +1,4 @@
-# Notes
+# Dragon Ball Notes
 
 In this file, there are all bunch of notes and attempts to exploit this machine
 
