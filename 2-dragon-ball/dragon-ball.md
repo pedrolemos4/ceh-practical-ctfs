@@ -143,7 +143,7 @@ To fix this, we do:
 
 Finally we ssh, we get access to the target. If we do `ls` we have the `local.txt` that contains our 1st flag:
 
-`your falg :192fb6275698b5ad9868c7afb62fd555`
+`your flag: 192fb6275698b5ad9868c7afb62fd555`
 
 ### proof.txt
 

@@ -19,3 +19,11 @@ Instructions and notes on how I achieved each flag during my study in ISEP Acade
 
 **Result:**
 ![Dragon Ball Result](images/dragon-ball.png)
+
+### Hackerfest 2019
+
+**Notes:**
+[📘 Open the HF 2019 instructions](./3-hf-2019/hf-2019,md)
+
+**Result:**
+![HF 2019 Result](images/hf-2019.png)
